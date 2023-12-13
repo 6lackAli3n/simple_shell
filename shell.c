@@ -7,7 +7,8 @@
 #include <unistd.h>
 
 /**
- * @brief - Enters interactive mode, allowing the user to input commands.
+ * interactive_mode - Enters interactive mode,
+ * allowing the user to input commands.
  *
  * This function starts an interactive shell session
  * where the user can input commands.
@@ -35,15 +36,13 @@ void interactive_mode(void)
 	}
 }
 /**
- * @brief - Processes the given command by forking a child process and
- * executing the command.
+ * Processe_command - processes the given command by forking a
+ * child process and executing the command.
  *
  * This function takes a command as input, forks a child process,
  * and executes the command
  * using execvp in the child process.
- * It waits for the child process to finish in the parent process.
- *
- * @param command The command to be processed.
+ * @param command: The command to be processed.
  */
 void process_command(char *command)
 {
@@ -60,9 +59,20 @@ void process_command(char *command)
 
 	if (child_pid == 0)
 	{
-		if (execlp(command, command, (char *)NULL) == -1)
+		char *args[100];
+		int arg_count = 0;
+
+		char *token = strtok(command, " ");
+		while (token != NULL)
 		{
-			perror(command);
+			args[arg_count++] = token;
+			token = strtok(NULL, " ");
+		}
+		args[arg_count] = NULL;
+
+		if (execvp(args[0], args) == -1)
+		{
+			perror(args[0]);
 			exit(EXIT_FAILURE);
 		}
 	}
