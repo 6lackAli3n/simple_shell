@@ -1,36 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <signal.h>
+#include <string.h>
 
-#define MAX_INPUT_SIZE 1024
+#define MAX_INPUT 1024
 
 /**
- * display_prompt - A command line alawys ends with anew line
+ * display_prompt - Display the shell prompt
  */
 void display_prompt(void)
 {
 	printf("#cisfun$ ");
-}
-
-/**
- * read_command - Read a command from the user
- *
- * Return: The entered command or NULL on end-of-file
- */
-char *read_command(void)
-{
-	char *command = NULL;
-	size_t bufsize = 0;
-
-	if (getline(&command, &bufsize, stdin) == -1)
-	{
-		free(command);
-		return (NULL);
-	}
-	command[strcspn(command, "\n")] = '\0';
-	return (command);
 }
 
 /**
@@ -39,35 +21,33 @@ char *read_command(void)
  *
  * Return: 0 on success, -1 on failure
  */
-int execute_command(char *command)
+void execute_command(char *command)
 {
-	pid_t pid;
-	char *args[2];
-	
-	args[0] = command;
-	args[1] = NULL;
+	pid_t child_pid;
+	int status;
 
-	pid = fork();
+	child_pid = fork();
 
-	if (pid == -1)
+	if (child_pid == -1)
 	{
-		perror("fork");
-		exit(EXIT_FAILURE);
+		perror("Error forking");
 	}
-	if (pid == 0)
+	else if (child_pid == 0)
 	{
-		extern char **environ;
-		if (execve(command, args, environ) == -1)
+		char *args[2]; 
+		args[0] = command;
+		args[1] = NULL;
+
+		if (execve(command, args, NULL) == -1)
 		{
-			fprintf(stderr, "%s: No such file or directory\n", command);
+			perror("Error executing command");
 			exit(EXIT_FAILURE);
 		}
 	}
 	else
 	{
-		wait(NULL);
+		waitpid(child_pid, &status, 0);
 	}
-	return (0);
 }
 
 /**
@@ -77,21 +57,27 @@ int execute_command(char *command)
  */
 int main(void)
 {
-	char *command;
+	char input[MAX_INPUT];
+
+	signal(SIGINT, SIG_IGN);
 
 	while (1)
 	{
 		display_prompt();
 
-		command = read_command();
-
-		if (command == NULL)
+		if (fgets(input, MAX_INPUT, stdin) == NULL)
 		{
 			printf("\n");
-			exit(EXIT_SUCCESS);
+			break;
 		}
-		execute_command(command);
-		free(command);
+
+		input[strcspn(input, "\n")] = '\0';
+
+		if (strcmp(input, "exit") == 0)
+		{
+			break;
+		}
+		execute_command(input);
 	}
-	return (0);
+	return (EXIT_SUCCESS);
 }
