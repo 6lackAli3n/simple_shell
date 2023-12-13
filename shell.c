@@ -34,8 +34,10 @@ void execute_command(char *command)
 	}
 	else if (child_pid == 0)
 	{
-		char *args[2]; 
+		char *args[2];
+
 		args[0] = command;
+
 		args[1] = NULL;
 
 		if (execve(command, args, NULL) == -1)
