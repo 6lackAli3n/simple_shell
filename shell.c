@@ -70,9 +70,11 @@ void process_command(char *command)
 		}
 		args[arg_count] = NULL;
 
-		execvp(args[0], args);
-		fprintf(stderr, "Error: Couldn't execute command '%s'\n", args[0]);
-		exit(EXIT_FAILURE);
+		if (execvp(args[0], args) == -1)
+		{
+			perror(args[0]);
+			exit(EXIT_FAILURE);
+		}
 	}
 	else
 	{
