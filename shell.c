@@ -57,7 +57,7 @@ void process_command(char *command)
 		perror("fork");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	if (child_pid == 0)
 	{
 		if (execlp(command, command, (char *)NULL) == -1)
