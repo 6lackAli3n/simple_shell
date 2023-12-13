@@ -9,11 +9,6 @@
 /**
  * interactive_mode - Enters interactive mode,
  * allowing the user to input commands.
- *
- * This function starts an interactive shell session
- * where the user can input commands.
- * It reads the commands, processes them, and
- * displays the result until the user decides to exit.
  */
 void interactive_mode(void)
 {
@@ -24,15 +19,18 @@ void interactive_mode(void)
 	{
 		printf("($) ");
 		if (getline(&input, &len, stdin) == -1)
-			break;
-
-		input[strlen(input) - 1] = '\0';
+		{
+			 printf("\n");
+			 free(input);
+			 exit(EXIT_SUCCESS);
+		}
+		if (strcmp(input, "exit") == 0)
+		{
+			free(input);
+			exit(EXIT_SUCCESS);
+		}
 
 		process_command(input);
-
-		free(input);
-		input = NULL;
-		len = 0;
 	}
 }
 /**
@@ -69,8 +67,8 @@ void process_command(char *command)
 			token = strtok(NULL, " ");
 		}
 		args[arg_count] = NULL;
-
-		if (execvp(args[0], args) == -1)
+		
+		execvp(args[0], args);
 		{
 			perror(args[0]);
 			exit(EXIT_FAILURE);
