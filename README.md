@@ -1,21 +1,18 @@
-Simple Shell
+# Simple Shell Project
 
-Write a UNIX command line interpreter.
+## Description
 
-Usage: simple_shell
-Your Shell should:
+The Simple Shell Project is a basic UNIX command line interpreter implemented in C. It serves as a minimal shell that allows users to execute commands, displays a prompt, and handles simple command-line inputs.
 
-Display a prompt and wait for the user to type a command. A command line always ends with a new line.
-The prompt is displayed again each time a command has been executed.
-The command lines are simple, no semicolons, no pipes, no redirections or any other advanced features.
-The command lines are made only of one word. No arguments will be passed to programs.
-If an executable cannot be found, print an error message and display the prompt again.
-Handle errors.
-You have to handle the “end of file” condition (Ctrl+D)
-You don’t have to:
+## Features
 
-use the PATH
-implement built-ins
-handle special characters : ", ', `, \, *, &, #
-be able to move the cursor
-handle commands with arguments
+- Displays a prompt and waits for user input.
+- Executes commands entered by the user.
+- Provides a basic interactive shell experience.
+
+## Getting Started
+
+To compile the shell, use the following command:
+
+```bash
+gcc -Wall -Werror -Wextra -pedantic -std=gnu89 *.c -o hsh

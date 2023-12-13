@@ -66,6 +66,7 @@ int main(void)
 	while (1)
 	{
 		display_prompt();
+		printf("#cisfun$ ");
 
 		if (fgets(input, MAX_INPUT, stdin) == NULL)
 		{
