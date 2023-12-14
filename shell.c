@@ -5,62 +5,6 @@
 #include <sys/wait.h>
 #include <string.h>
 
-
-#define BUFFER_SIZE 1024
-/**
- * display_prompt - Display the shell prompt
- */
-void display_prompt(void)
-{
-	printf("#cisfun$ ");
-	fflush(stdout);
-}
-
-/**
- * execute_command - Execute a command in a child process
- * @buffer: The command to be executed
- *
- * This function forks a child process and executes the given command.
- *
- * Return: Always 0 on success
- */
-int execute_command(char *buffer, char **environ)
-{
-	char *cmd_args[2];
-	pid_t pid;
-
-	pid = fork();
-
-	if (pid == -1)
-	{
-		perror("fork");
-		exit(EXIT_FAILURE);
-	}
-
-	if (pid == 0)
-	{
-		cmd_args[0] = buffer;
-		cmd_args[1] = NULL;
-
-		if (execve(buffer, cmd_args, environ) == -1)
-		{
-			perror(buffer);
-			exit(EXIT_FAILURE);
-		}
-	}
-	else
-	{
-		int status;
-
-		waitpid(pid, &status, 0);
-
-		if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-		{
-			fprintf(stderr, "%s: not found\n", buffer);
-		}
-	}
-	return (0);
-}
 /**
  * main - Entry point for the simple shell
  *
@@ -68,21 +12,39 @@ int execute_command(char *buffer, char **environ)
  */
 int main(void)
 {
-	char buffer[BUFFER_SIZE];
+	char *buffer;
+	size_t bufsize = 32;
 
-	extern char **environ;
-
+	buffer = (char *)malloc(bufsize * sizeof(char));
+	if (buffer == NULL)
+	{
+		perror("Unable to allocate buffer");
+		exit(1);
+	}
 	while (1)
 	{
-		display_prompt();
-		if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
-		{
-			printf("\n");
-			break;
-		}
-		buffer[strcspn(buffer, "\n")] = '\0';
+		printf("$ ");
+		getline(&buffer, &bufsize, stdin);
 
-		execute_command(buffer, environ);
+		if (buffer[0] == '\n')
+		{
+			continue;
+		}
+		if (fork() == 0)
+		{
+			buffer[strlen(buffer) - 1] = '\0';
+			if (execlp(buffer, buffer, NULL) == -1)
+			{
+				perror(buffer);
+			}
+			exit(0);
+		}
+		else
+		{
+			wait(NULL);
+		}
 	}
-	return (EXIT_SUCCESS);
+
+	free(buffer);
+	return (0);
 }
