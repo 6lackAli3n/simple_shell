@@ -70,7 +70,7 @@ void process_command(char *command)
 		
 		execvp(args[0], args);
 		{
-			perror(args[0]);
+			perror("execvp");
 			exit(EXIT_FAILURE);
 		}
 	}
