@@ -33,6 +33,11 @@ void handle_user_input(void)
 		{
 			continue;
 		}
+		if (access(buffer, F_OK | X_OK) != 0)
+		{
+			perror(buffer);
+			continue;
+		}
 		if (fork() == 0)
 		{
 			execute_command(buffer);
@@ -53,10 +58,16 @@ void execute_command(char *buffer)
 {
 	char *args[32];
 	int i;
+	char *token;
+	char *path;
+	char *path_token;
 
-	char *token = strtok(buffer, " ");
+	token = strtok(buffer, " ");
 
 	buffer[strlen(buffer) - 1] = '\0';
+
+	path = getenv("PATH");
+	path_token = strtok(path, ":");
 
 	for (i = 0;  token != NULL; i++)
 	{
@@ -64,11 +75,26 @@ void execute_command(char *buffer)
 		token = strtok(NULL, " ");
 	}
 	args[i] = NULL;
-	if (execvp(args[0], args) == -1)
+
+	while (path_token != NULL)
 	{
-		perror("Error");
+		char *full_path = malloc(strlen(path_token) + strlen(args[0]) + 2);
+
+		sprintf(full_path, "%s/%s", path_token, args[0]);
+		if (access(full_path, X_OK) == 0)
+		{
+			if (execve(full_path, args, NULL) == -1)
+			{
+				perror(args[0]);
+			}
+			free(full_path);
+			exit(0);
+		}
+		free(full_path);
+		path_token = strtok(NULL, ":");
 	}
-	exit(0);
+	perror(args[0]);
+	exit(127);
 }
 /**
  * main - Entry point for the simple shell
