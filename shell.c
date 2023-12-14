@@ -1,81 +1,88 @@
-#include "shell.h"
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <unistd.h>
+#include <string.h>
 
+
+#define BUFFER_SIZE 1024
 /**
- * interactive_mode - Enters interactive mode,
- * allowing the user to input commands.
+ * display_prompt - Display the shell prompt
  */
-void interactive_mode(void)
+void display_prompt(void)
 {
-	char *input;
-	size_t len = 0;
-
-	while (1)
-	{
-		printf("($) ");
-		if (getline(&input, &len, stdin) == -1)
-		{
-			 printf("\n");
-			 free(input);
-			 exit(EXIT_SUCCESS);
-		}
-		if (strcmp(input, "exit") == 0)
-		{
-			free(input);
-			exit(EXIT_SUCCESS);
-		}
-
-		process_command(input);
-	}
+	printf("#cisfun$ ");
+	fflush(stdout);
 }
+
 /**
- * Processe_command - processes the given command by forking a
- * child process and executing the command.
+ * execute_command - Execute a command in a child process
+ * @buffer: The command to be executed
  *
- * This function takes a command as input, forks a child process,
- * and executes the command
- * using execvp in the child process.
- * @param command: The command to be processed.
+ * This function forks a child process and executes the given command.
+ *
+ * Return: Always 0 on success
  */
-void process_command(char *command)
+int execute_command(char *buffer, char **environ)
 {
-	pid_t child_pid;
-	int status;
+	char *cmd_args[2];
+	pid_t pid;
 
-	child_pid = fork();
+	pid = fork();
 
-	if (child_pid == -1)
+	if (pid == -1)
 	{
 		perror("fork");
 		exit(EXIT_FAILURE);
 	}
 
-	if (child_pid == 0)
+	if (pid == 0)
 	{
-		char *args[100];
-		int arg_count = 0;
+		cmd_args[0] = buffer;
+		cmd_args[1] = NULL;
 
-		char *token = strtok(command, " ");
-		while (token != NULL)
+		if (execve(buffer, cmd_args, environ) == -1)
 		{
-			args[arg_count++] = token;
-			token = strtok(NULL, " ");
-		}
-		args[arg_count] = NULL;
-		
-		execvp(args[0], args);
-		{
-			perror("execvp");
+			perror(buffer);
 			exit(EXIT_FAILURE);
 		}
 	}
 	else
 	{
-		waitpid(child_pid, &status, 0);
+		int status;
+
+		waitpid(pid, &status, 0);
+
+		if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+		{
+			fprintf(stderr, "%s: not found\n", buffer);
+		}
 	}
+	return (0);
+}
+/**
+ * main - Entry point for the simple shell
+ *
+ * Return: Always 0 on success
+ */
+int main(void)
+{
+	char buffer[BUFFER_SIZE];
+
+	extern char **environ;
+
+	while (1)
+	{
+		display_prompt();
+		if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
+		{
+			printf("\n");
+			break;
+		}
+		buffer[strcspn(buffer, "\n")] = '\0';
+
+		execute_command(buffer, environ);
+	}
+	return (EXIT_SUCCESS);
 }
