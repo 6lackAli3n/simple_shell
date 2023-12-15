@@ -18,7 +18,7 @@ int main(void)
 
 	while (1)
 	{
-		printf("#cisfun$ ");
+		printf("$");
 		characters = getline(&buffer, &bufsize, stdin);
 		if (characters == -1)
 		{
