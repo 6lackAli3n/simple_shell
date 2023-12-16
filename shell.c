@@ -33,8 +33,8 @@ int executeCommand(const char *command)
  */
 int main(void)
 {
-	executeCommand("/bin/ls");
 	int i;
+	executeCommand("/bin/ls");
 
 	for (i = 0; i < 3; ++i)
 	{
