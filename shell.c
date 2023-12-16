@@ -34,12 +34,13 @@ int executeCommand(const char *command)
 int main(void)
 {
 	executeCommand("/bin/ls");
+	int i;
 
-	for (int i = 0; i < 3; ++i)
+	for (i = 0; i < 3; ++i)
 	{
 		executeCommand("/bin/ls");
 	}
-	for (int i = 0; i < 4; ++i)
+	for (i = 0; i < 4; ++i)
 	{
 		executeCommand("/bin/ls");
 	}
