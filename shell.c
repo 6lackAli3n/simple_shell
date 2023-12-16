@@ -1,9 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
 #include <sys/wait.h>
+
+/**
+ * executeCommand - Executes a command and performs some operation.
+ *
+ * @command: The command to be executed.
+ * Return: On success, returns 0. failure, returns -1
+ */
+int executeCommand(const char *command)
+{
+	if (fork() == 0)
+	{
+		/*Child process*/
+		execlp(command, command, (char *)NULL);
+		perror("Error executing command");
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		/*Parent process*/
+		wait(NULL); /*Wait for the child to finish*/
+	}
+	return (0); /*Placeholder return value for success, modify as needed*/
+}
 
 /**
  * main - Entry point for the simple shell
@@ -12,43 +33,39 @@
  */
 int main(void)
 {
-	char *buffer = NULL;
-	size_t bufsize = 0;
-	ssize_t characters;
+	executeCommand("/bin/ls");
 
-	while (1)
+	for (int i = 0; i < 3; ++i)
 	{
-		printf("$");
-		characters = getline(&buffer, &bufsize, stdin);
-		if (characters == -1)
-		{
-			if (isatty(STDIN_FILENO))
-				printf("\n");
-			break;
-		}
-		buffer[strcspn(buffer, "\n")] = '\0';
-
+		executeCommand("/bin/ls");
+	}
+	for (int i = 0; i < 4; ++i)
+	{
+		executeCommand("/bin/ls");
+	}
+	if (fork() == 0)
+	{
+		/*Child process for copying*/
+		execlp("/bin/cp", "cp", "/bin/ls", "hbtn_ls", (char *)NULL);
+		perror("Error copying file");
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		/*Parent process*/
+		wait(NULL); /*Wait for the copy process to finish*/
 		if (fork() == 0)
 		{
-			char **args = malloc(2 * sizeof(char *));
-
-			if (args == NULL)
-			{
-				perror("malloc");
-				exit(EXIT_FAILURE);
-			}
-			args[0] = buffer;
-			args[1] = NULL;
-
-			execve(buffer, args, NULL);
-			perror("execve");
+			/*Child process for executing ./hbtn_ls /var*/
+			execlp("./hbtn_ls", "hbtn_ls", "/var", (char *)NULL);
+			perror("Error executing hbtn_ls");
 			exit(EXIT_FAILURE);
 		}
 		else
 		{
-			wait(NULL);
+			/*Parent process*/
+			wait(NULL); /*Wait for the child to finish*/
 		}
-	}
-	free(buffer);
+		}
 	return (0);
 }
